@@ -1,21 +1,21 @@
-
-name: Build WeraWidget IPA
+name: iOS Build
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
 
 jobs:
   build:
-    runs-on: macos-latest
+    runs-on: macos-15
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
+      - uses: actions/checkout@v4
 
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate Xcode project
+      - name: Generate project
         run: xcodegen generate
 
       - name: Build iOS app
@@ -25,20 +25,14 @@ jobs:
             -scheme Vera \
             -configuration Release \
             -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
             -derivedDataPath build \
             CODE_SIGNING_ALLOWED=NO \
             build
 
-      - name: Package IPA
-        run: |
-          mkdir -p Payload
-          cp -R build/Build/Products/Release-iphoneos/Vera.app Payload/
-          cd Payload/..
-          zip -r WeraWidget.ipa Payload
-
-      - name: Upload IPA
+      - name: Upload app artifact
         uses: actions/upload-artifact@v4
         with:
-          name: WeraWidget-IPA
-          path: WeraWidget.ipa
+          name: Vera-iOS-App
+          path: build/Build/Products/Release-iphoneos/Vera.app
           if-no-files-found: error
