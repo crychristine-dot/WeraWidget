@@ -9,19 +9,17 @@ jobs:
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v5
 
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Generate project
-        run: |
-          cd VeraApp
-          xcodegen generate
+      - name: Generate Xcode project
+        run: xcodegen generate
 
-      - name: Build
+      - name: Build iOS app
         run: |
-          cd VeraApp
           xcodebuild \
             -project Vera.xcodeproj \
             -scheme Vera \
@@ -34,10 +32,13 @@ jobs:
       - name: Package IPA
         run: |
           mkdir -p Payload
-          cp -R VeraApp/build/Build/Products/Release-iphoneos/*.app Payload/
+          cp -R build/Build/Products/Release-iphoneos/Vera.app Payload/
+          cd Payload/..
           zip -r WeraWidget.ipa Payload
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
         with:
           name: WeraWidget-IPA
           path: WeraWidget.ipa
+          if-no-files-found: error
