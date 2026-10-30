@@ -1,47 +1,40 @@
-# Тихий свет (Vera) — iOS
+# Vera — «Тихий свет» (v1.0)
 
-Нативное SwiftUI-приложение с офлайн-библиотекой библейских стихов, поиском, темами, избранным и виджетами WidgetKit Small / Medium / Large.
+Полностью офлайн-приложение для iPhone с библиотекой библейских стихов, поиском, категориями, избранным, темами оформления и виджетами WidgetKit трёх размеров.
 
-## Что реализовано
+## Важно про установку
 
-- Главный экран со стихом дня и сменой цитаты.
-- Библиотека с поиском по тексту и источнику и фильтрацией по категориям.
-- Избранное с локальным сохранением через App Group.
-- Четыре темы виджета: Графит, Полночь, Бордо, Лес.
-- Настройка категорий, которые используются в виджетах.
-- Share Sheet для отправки цитат.
-- Переход из виджета к соответствующей цитате в приложении.
-- WidgetKit timeline с плановыми обновлениями.
-- Работа без аккаунта и без обязательного интернета.
+GitHub Actions собирает **неподписанный** `Vera.app` и сохраняет его как `Vera-unsigned-app.zip`. Это не готовый к установке IPA. Для установки через ESign нужна корректная подпись.
+
+Для Ad Hoc установки должны одновременно выполняться условия:
+
+1. Сертификат и provisioning profile должны быть выданы одной Apple Developer Team.
+2. Provisioning profile основного приложения должен разрешать App ID `com.kriscarter.vera` и содержать UDID iPhone.
+3. Для расширения виджета нужен App ID `com.kriscarter.vera.widget`, соответствующий профиль, а также разрешение App Groups.
+4. В обоих профилях должна быть разрешена App Group `group.com.kriscarter.vera`.
+5. ESign должен переподписать и основное приложение, и вложенное расширение `VeraWidget.appex`.
+
+Если ESign использует профиль без UDID или не подписывает вложенное расширение подходящим профилем, установка может зависать или завершаться ошибкой. Сам по себе зелёный GitHub Actions означает только успешную компиляцию.
 
 ## Сборка
 
-Для генерации Xcode-проекта нужен Xcode и XcodeGen. В GitHub Actions используется macOS runner, поэтому локальный Mac не требуется для проверки компиляции.
+Workflow `.github/workflows/ios-build.yml` автоматически:
+- запускается при push в `main` или вручную;
+- генерирует Xcode-проект через XcodeGen;
+- собирает приложение и виджет на macOS / Xcode;
+- упаковывает `Vera.app` в ZIP;
+- публикует ZIP в Artifacts.
 
-Workflow находится в `.github/workflows/ios-build.yml`. Он собирает приложение и расширение виджетов без подписи и прикрепляет `Vera.app` как Actions Artifact.
+## Структура
 
-**Важно:** успешная unsigned-сборка подтверждает компиляцию, но не является устанавливаемым IPA. Для установки на iPhone приложение нужно подписать Apple Development / Distribution сертификатом и provisioning profile, подходящим для App ID `com.kriscarter.vera` и extension `com.kriscarter.vera.widget`. Не публикуйте `.p12`, приватные ключи или provisioning profiles в открытом репозитории и не отправляйте их в чат.
+- `VeraApp/` — SwiftUI-приложение.
+- `VeraWidget/` — виджет WidgetKit.
+- `project.yml` — конфигурация XcodeGen.
+- `.github/workflows/ios-build.yml` — CI-сборка.
 
-## App Group
+Bundle IDs:
+- App: `com.kriscarter.vera`
+- Widget: `com.kriscarter.vera.widget`
+- App Group: `group.com.kriscarter.vera`
 
-Обе цели используют App Group:
-
-`group.com.kriscarter.vera`
-
-Эту группу нужно создать в Apple Developer Account и включить для App ID основного приложения и виджет-расширения. Bundle IDs:
-
-- `com.kriscarter.vera`
-- `com.kriscarter.vera.widget`
-
-Если у вашего Apple Developer аккаунта нет доступа к созданию App Groups или профилей для этих идентификаторов, замените идентификаторы в `project.yml` и обоих `.entitlements` на собственные и согласованные значения.
-
-## Загрузка через GitHub в браузере
-
-1. Откройте репозиторий `https://github.com/crychristine-dot/vera-ios`.
-2. Откройте каждый файл проекта и замените его содержимое соответствующим файлом из архива, либо загрузите распакованные файлы через **Add file → Upload files**.
-3. Убедитесь, что workflow лежит именно по пути `.github/workflows/ios-build.yml`.
-4. Нажмите **Commit changes**.
-5. Откройте вкладку **Actions** и дождитесь зелёной галочки.
-6. В успешном запуске скачайте artifact `Vera-unsigned-app`.
-
-GitHub Actions выполняет сборку на macOS. Команды терминала на вашем Arch Linux для работы с GitHub не нужны.
+Минимальная версия iOS: 17.0. Версия приложения: 1.0 (build 1).

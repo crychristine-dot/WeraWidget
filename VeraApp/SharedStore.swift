@@ -1,32 +1,37 @@
 import Foundation
+import Combine
 import WidgetKit
 
-enum SharedStore {
-    static let suite = "group.com.kriscarter.vera"
-    static let selectedCategoriesKey = "selectedCategories"
-    static let favoritesKey = "favorites"
-    static let themeKey = "widgetTheme"
+@MainActor
+final class VeraStore: ObservableObject {
+    static let shared = VeraStore()
+    static let appGroup = "group.com.kriscarter.vera"
+    private let defaults = UserDefaults(suiteName: appGroup) ?? .standard
 
-    static var defaults: UserDefaults { UserDefaults(suiteName: suite) ?? .standard }
+    @Published private(set) var favorites: Set<String>
+    @Published private(set) var categories: Set<String>
+    @Published private(set) var theme: String
 
-    static func selectedCategories() -> Set<String> {
-        Set(defaults.stringArray(forKey: selectedCategoriesKey) ?? ["Библия", "Любовь", "Вера", "Надежда", "Поддержка"])
+    private init() {
+        favorites = Set(defaults.stringArray(forKey: "favorites") ?? [])
+        categories = Set(defaults.stringArray(forKey: "categories") ?? ["Вера", "Надежда", "Поддержка", "Спокойствие"])
+        theme = defaults.string(forKey: "theme") ?? "Обсидиан"
     }
-    static func saveCategories(_ categories: Set<String>) {
-        defaults.set(Array(categories), forKey: selectedCategoriesKey)
+
+    func isFavorite(_ id: String) -> Bool { favorites.contains(id) }
+    func toggleFavorite(_ id: String) {
+        if favorites.contains(id) { favorites.remove(id) } else { favorites.insert(id) }
+        defaults.set(Array(favorites), forKey: "favorites")
         WidgetCenter.shared.reloadAllTimelines()
     }
-    static func favorites() -> Set<String> {
-        Set(defaults.stringArray(forKey: favoritesKey) ?? [])
+    func setCategories(_ value: Set<String>) {
+        categories = value
+        defaults.set(Array(value), forKey: "categories")
+        WidgetCenter.shared.reloadAllTimelines()
     }
-    static func toggleFavorite(_ id: String) {
-        var ids = favorites()
-        if ids.contains(id) { ids.remove(id) } else { ids.insert(id) }
-        defaults.set(Array(ids), forKey: favoritesKey)
-    }
-    static func theme() -> String { defaults.string(forKey: themeKey) ?? "Графит" }
-    static func saveTheme(_ theme: String) {
-        defaults.set(theme, forKey: themeKey)
+    func setTheme(_ value: String) {
+        theme = value
+        defaults.set(value, forKey: "theme")
         WidgetCenter.shared.reloadAllTimelines()
     }
 }
