@@ -1,46 +1,47 @@
-# Тихий свет — iOS starter
+# Тихий свет (Vera) — iOS
 
-Нативный SwiftUI-проект с WidgetKit: главный экран, темы, избранное и виджеты Small / Medium / Large.
+Нативное SwiftUI-приложение с офлайн-библиотекой библейских стихов, поиском, темами, избранным и виджетами WidgetKit Small / Medium / Large.
 
-## Важно
-Сборка iOS-приложения и подпись IPA требуют macOS + Xcode. На Arch можно редактировать проект, хранить его в Git и запускать сборку на удалённом Mac (например, GitHub Actions с macOS runner). Этот архив — исходный проект, не готовый IPA.
+## Что реализовано
 
-## 1. Настроить идентификаторы
-Сейчас используются:
-- App: `com.kriscarter.vera`
-- Widget: `com.kriscarter.vera.widget`
-- App Group: `group.com.kriscarter.vera`
+- Главный экран со стихом дня и сменой цитаты.
+- Библиотека с поиском по тексту и источнику и фильтрацией по категориям.
+- Избранное с локальным сохранением через App Group.
+- Четыре темы виджета: Графит, Полночь, Бордо, Лес.
+- Настройка категорий, которые используются в виджетах.
+- Share Sheet для отправки цитат.
+- Переход из виджета к соответствующей цитате в приложении.
+- WidgetKit timeline с плановыми обновлениями.
+- Работа без аккаунта и без обязательного интернета.
 
-Замени их на свои уникальные идентификаторы в `project.yml`, `VeraApp/Vera.entitlements` и `VeraWidget/VeraWidget.entitlements`. Один и тот же App Group должен быть включён для приложения и расширения в Apple Developer.
+## Сборка
 
-## 2. Сборка на Mac
-Установить Xcode и XcodeGen, затем в папке проекта:
+Для генерации Xcode-проекта нужен Xcode и XcodeGen. В GitHub Actions используется macOS runner, поэтому локальный Mac не требуется для проверки компиляции.
 
-```bash
-brew install xcodegen
-xcodegen generate
-open Vera.xcodeproj
-```
+Workflow находится в `.github/workflows/ios-build.yml`. Он собирает приложение и расширение виджетов без подписи и прикрепляет `Vera.app` как Actions Artifact.
 
-В Xcode выбери Team для обоих targets (Vera и VeraWidget), проверь Signing & Capabilities и включи одинаковый App Group для обоих targets. Затем выбери Any iOS Device и Product → Archive.
+**Важно:** успешная unsigned-сборка подтверждает компиляцию, но не является устанавливаемым IPA. Для установки на iPhone приложение нужно подписать Apple Development / Distribution сертификатом и provisioning profile, подходящим для App ID `com.kriscarter.vera` и extension `com.kriscarter.vera.widget`. Не публикуйте `.p12`, приватные ключи или provisioning profiles в открытом репозитории и не отправляйте их в чат.
 
-Для установки на устройство потребуется корректная подпись и provisioning profile, включающий App Group и Widget Extension.
+## App Group
 
-## 3. Работа с Arch
-На Arch можно редактировать Swift-файлы любым редактором и отправлять проект в GitHub. Удалённая сборка выполняется на macOS runner. Для подписанного IPA нужно настроить сертификат Apple Distribution и provisioning profiles в защищённых GitHub Secrets; не загружай приватный ключ в публичный репозиторий.
+Обе цели используют App Group:
 
-## 4. Что уже реализовано
-- Тёмный интерфейс с золотистым акцентом.
-- Четыре вкладки: Главная, Темы, Избранное, Настройки.
-- Выбор категорий и передача настроек виджету через App Group.
-- WidgetKit: Small, Medium и Large.
-- Локальная подборка из 24 библейских отрывков.
-- Выбор одной из четырёх цветовых тем виджета: Графит, Полночь, Бордо, Лес.
-- Timeline с несколькими записями; реальная частота обновления контролируется iOS.
+`group.com.kriscarter.vera`
 
-## 5. Следующие этапы
-1. Подключить App Group и signing в Apple Developer.
-2. Собрать и проверить на iPhone.
-3. Добавить импорт большой проверенной библиотеки текстов и молитв.
-4. Добавить редактор оформления, фоновые изображения, шаринг-карточки и историю.
-5. Настроить CI-сборку подписанного IPA под твой сертификат.
+Эту группу нужно создать в Apple Developer Account и включить для App ID основного приложения и виджет-расширения. Bundle IDs:
+
+- `com.kriscarter.vera`
+- `com.kriscarter.vera.widget`
+
+Если у вашего Apple Developer аккаунта нет доступа к созданию App Groups или профилей для этих идентификаторов, замените идентификаторы в `project.yml` и обоих `.entitlements` на собственные и согласованные значения.
+
+## Загрузка через GitHub в браузере
+
+1. Откройте репозиторий `https://github.com/crychristine-dot/vera-ios`.
+2. Откройте каждый файл проекта и замените его содержимое соответствующим файлом из архива, либо загрузите распакованные файлы через **Add file → Upload files**.
+3. Убедитесь, что workflow лежит именно по пути `.github/workflows/ios-build.yml`.
+4. Нажмите **Commit changes**.
+5. Откройте вкладку **Actions** и дождитесь зелёной галочки.
+6. В успешном запуске скачайте artifact `Vera-unsigned-app`.
+
+GitHub Actions выполняет сборку на macOS. Команды терминала на вашем Arch Linux для работы с GitHub не нужны.
